@@ -1,44 +1,29 @@
 import { NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,  // Use SSL
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD
-  }
-})
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: Request) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-    console.error('Missing email credentials');
+  if (!process.env.RESEND_API_KEY || !process.env.ADMIN_EMAIL) {
+    console.error('Missing Resend API key or admin email');
     return NextResponse.json({ success: false, error: 'Missing email configuration' }, { status: 500 });
   }
 
   try {
     const data = await request.json()
-    
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
+
+    await resend.emails.send({
+      from: 'DateByte <onboarding@resend.dev>',
+      to: process.env.ADMIN_EMAIL,
       subject: '💕 New Date Response!',
       html: `
         <h1>She responded!</h1>
-        <p>Date: ${new Date(data.date).toLocaleDateString()}</p>
+        <p>Day: ${data.date}</p>
         <p>Time: ${data.time}</p>
-        <p>Food: ${data.food.join(', ')}</p>
-        <p>Movie: ${data.movie}</p>
-        <p>Excitement: ${data.excitement}/100</p>
+        <p>Activities: ${data.activities.join(', ')}</p>
       `,
-      attachments: [{
-        filename: `date-response-${new Date().toISOString()}.json`,
-        content: JSON.stringify(data, null, 2),
-        contentType: 'application/json'
-      }]
     })
-    
+
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     console.error('Failed to send email:', error)

@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +12,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -21,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Heart, Coffee, Film, Utensils, Clock } from "lucide-react";
+import { Heart, Ticket, Flag, Sun, IceCreamCone, Target, Gamepad2, Utensils, Sparkle } from "lucide-react";
 import confetti from "canvas-confetti";
 import ThemedCard from "@/components/ThemedCard";
 import Sparkles from "@/components/Sparkles";
@@ -32,11 +30,9 @@ import SelectButton from "@/components/SelectButton";
 
 interface Answers {
   isAvailable: boolean | null;
-  date: Date | null;
+  date: string | null;
   time: string;
-  food: string[];
-  movie: string;
-  excitement: number;
+  activities: string[];
 }
 
 
@@ -57,18 +53,8 @@ export default function EnchantingDateProposalApp() {
     isAvailable: null,
     date: null,
     time: "",
-    food: [],
-    movie: "",
-    excitement: 50,
+    activities: [],
   });
-
-  const [hour, setHour] = useState<string>("7");
-  const [minute, setMinute] = useState<string>("00");
-  const [ampm, setAmpm] = useState<string>("PM");
-
-  useEffect(() => {
-    setAnswers((prev) => ({ ...prev, time: `${hour}:${minute} ${ampm}` }));
-  }, [hour, minute, ampm]);
 
   const handleAnswer = (key: keyof Answers, value: Answers[keyof Answers]) => {
     setAnswers({ ...answers, [key]: value });
@@ -83,20 +69,14 @@ export default function EnchantingDateProposalApp() {
     });
   };
 
-  const formatDate = (d: Date | null) => {
-    if (!d) return "";
-    try {
-      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    } catch (e) {
-      return d.toDateString();
-    }
-  };
+  const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const TIME_SLOTS = ["6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM", "8:30 PM", "9:00 PM", "9:30 PM"];
 
   const steps = [
     
     <motion.div key="step0" className="text-center" {...fadeInUp}>
-      <h1 className="text-4xl sm:text-5xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-rose-500">
-        Will you go on a date with me?
+      <h1 className="text-4xl sm:text-5xl font-extrabold mb-6">
+        💕<span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-rose-500">Can I take you on another date with me?</span> 😁
       </h1>
       <motion.img
         initial={{ opacity: 0, scale: 0.8 }}
@@ -159,8 +139,8 @@ export default function EnchantingDateProposalApp() {
     
     <motion.div key="step1" className="text-center" {...fadeInUp}>
       <StepCard stepNumber={1} totalSteps={6}>
-      <h2 className="text-4xl sm:text-5xl font-playfair font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-pink-600">
-        YEYYYYYYYY, WHEN SHALL WE GO?
+      <h2 className="text-4xl sm:text-5xl font-playfair font-bold mb-6">
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-pink-600">YEaaaaaYYYYYYY, WHEN SHALL WE GOOOO?</span>🙃
       </h2>
       <motion.img
         initial={{ opacity: 0, scale: 0.8 }}
@@ -170,61 +150,51 @@ export default function EnchantingDateProposalApp() {
         alt="Excited bear gif"
         className="w-full max-w-md mx-auto mb-6 rounded-2xl shadow-2xl shadow-pink-300/30"
       />
-      <div className="mb-6 p-4 bg-white rounded-lg shadow-lg">
-        <Calendar
-          mode="single"
-          selected={answers.date || undefined}
-          onSelect={(date) => setAnswers({ ...answers, date: date || null })}
-          className="mx-auto mb-4 w-full max-w-md"
-        />
-        <div className="flex gap-3 justify-center mt-4">
-          <Select onValueChange={(val) => setHour(val)}>
-            <SelectTrigger className="w-24 bg-pink-50 border-pink-200 text-pink-700">
-              <SelectValue placeholder="Hour" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
-                <SelectItem key={h} value={`${h}`}>
-                  {h}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select onValueChange={(val) => setMinute(val)}>
-            <SelectTrigger className="w-20 bg-pink-50 border-pink-200 text-pink-700">
-              <SelectValue placeholder="Min" />
-            </SelectTrigger>
-            <SelectContent>
-              {['00', '15', '30', '45'].map((m) => (
-                <SelectItem key={m} value={m}>
-                  {m}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select onValueChange={(val) => setAmpm(val)}>
-            <SelectTrigger className="w-20 bg-pink-50 border-pink-200 text-pink-700">
-              <SelectValue placeholder="AM/PM" />
-            </SelectTrigger>
-            <SelectContent>
-              {['AM', 'PM'].map((ap) => (
-                <SelectItem key={ap} value={ap}>
-                  {ap}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="mb-6">
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-4">
+          {DAYS.map((day) => (
+            <motion.button
+              key={day}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setAnswers({ ...answers, date: day, time: "" })}
+              className={`p-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                answers.date === day
+                  ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-300/50"
+                  : "bg-white text-pink-600 border-2 border-pink-100 hover:border-pink-300"
+              }`}
+            >
+              {day.slice(0, 3)}
+            </motion.button>
+          ))}
         </div>
+        {answers.date && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4"
+          >
+            <Select value={answers.time} onValueChange={(val) => setAnswers({ ...answers, time: val })}>
+              <SelectTrigger className="w-48 mx-auto bg-pink-50 border-pink-200 text-pink-700">
+                <SelectValue placeholder="Pick a time" />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_SLOTS.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </motion.div>
+        )}
       </div>
       <Button
         onClick={() => setStep(step + 1)}
         disabled={!answers.date || !answers.time}
         className="bg-gradient-to-r from-pink-500 to-rose-500 hover:brightness-95 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
       >
-        <Clock className="mr-2 h-5 w-5" /> Set our date!{" "}
-        <Heart className="ml-2 h-5 w-5" />
+        Set our date! <Heart className="ml-2 h-5 w-5" />
       </Button>
       </StepCard>
     </motion.div>,
@@ -232,126 +202,51 @@ export default function EnchantingDateProposalApp() {
   
     <motion.div key="step2" className="text-center" {...fadeInUp}>
       <StepCard stepNumber={2} totalSteps={6}>
-      <h2 className="text-4xl sm:text-5xl font-playfair font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-pink-600">
-        What shall we feast on, my dear?
+      <h2 className="text-4xl sm:text-5xl font-playfair font-bold mb-8">
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-pink-600">What shall we do, my dear?</span>
       </h2>
       <div className="grid grid-cols-2 gap-4 md:gap-6 mb-8">
         {[
-          { name: "Lasagna", icon: <Utensils className="w-6 h-6" /> },
-          { name: "Chicken Pie", icon: <Utensils className="w-6 h-6" /> },
-          { name: "Chicken Shawarma", icon: <Utensils className="w-6 h-6" /> },
-          { name: "Snack Platter", icon: <Coffee className="w-6 h-6" /> },
-          { name: "Mix rice", icon: <Utensils className="w-6 h-6" /> },
+          { name: "Fun Show", icon: <Ticket className="w-6 h-6" /> },
+          { name: "Golf Rooftop", icon: <Flag className="w-6 h-6" /> },
+          { name: "Walk / Sunset", icon: <Sun className="w-6 h-6" /> },
+          { name: "Ice Cream", icon: <IceCreamCone className="w-6 h-6" /> },
+          { name: "Bowling", icon: <Target className="w-6 h-6" /> },
+          { name: "Rec Room Royalmount", icon: <Gamepad2 className="w-6 h-6" /> },
+          { name: "Dinner", icon: <Utensils className="w-6 h-6" /> },
+          { name: "Tennis / Badminton", icon: <Target className="w-6 h-6" /> },
+          { name: "Fireworks", icon: <Sparkle className="w-6 h-6" /> },
         ].map(({ name, icon }) => (
           <SelectButton
             key={name}
             icon={icon}
             label={name}
-            isSelected={answers.food.includes(name)}
+            isSelected={answers.activities.includes(name)}
             onClick={() => {
-              const newFood = answers.food.includes(name)
-                ? answers.food.filter((f) => f !== name)
-                : [...answers.food, name];
-              setAnswers({ ...answers, food: newFood });
+              const updated = answers.activities.includes(name)
+                ? answers.activities.filter((a) => a !== name)
+                : [...answers.activities, name];
+              setAnswers({ ...answers, activities: updated });
             }}
           />
         ))}
       </div>
       <Button
         onClick={() => setStep(step + 1)}
-        disabled={answers.food.length === 0}
+        disabled={answers.activities.length === 0}
         className="bg-gradient-to-r from-pink-500 to-rose-500 hover:brightness-95 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
       >
-        Looks delicious! 🍽️
+        Let&apos;s do it! 🎉
       </Button>
       </StepCard>
     </motion.div>,
 
-     
-    <motion.div key="step3" className="text-center" {...fadeInUp}>
-      <h2 className="text-3xl font-semibold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-pink-600">
-        What shall we watch together?
-      </h2>
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        {[
-          "The Notebook",
-          "La La Land",
-          "Titanic",
-          "Pride and Prejudice",
-          "Anyone But You",
-          "Past Lives",
-          "Love at First Sight",
-          "Through My Window 3",
-          "Something else",
-        ].map((movie) => (
-          <motion.button
-            key={movie}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-white text-pink-600 hover:bg-pink-100 font-bold py-4 px-6 rounded-lg shadow-md transition-colors duration-300"
-            onClick={() => {
-              if (movie === "Something else") {
-                const customMovie = prompt(
-                  "What movie would you like to watch?"
-                );
-                if (customMovie) handleAnswer("movie", customMovie);
-              } else {
-                handleAnswer("movie", movie);
-              }
-            }}
-          >
-            <Film className="mx-auto mb-2" />
-            {movie}
-          </motion.button>
-        ))}
-      </div>
-    </motion.div>,
-
-    
-    <motion.div key="step4" className="text-center" {...fadeInUp}>
-      <StepCard stepNumber={4} totalSteps={6}>
-      <h2 className="text-4xl sm:text-5xl font-playfair font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-pink-600">
-        How excited are you for our date?
-      </h2>
-      <div className="max-w-lg mx-auto mb-8 p-8 bg-gradient-to-b from-white/80 to-pink-50/60 rounded-2xl shadow-lg border border-pink-100">
-        <Slider
-          defaultValue={[50]}
-          max={100}
-          step={25}
-          onValueChange={(value) =>
-            setAnswers({ ...answers, excitement: value[0] })
-          }
-        />
-        <div className="flex justify-between mt-6 text-sm text-pink-600 font-semibold">
-          <span>😐 Can&apos;t wait!</span>
-          <span>🤩 Super duper excited!</span>
-        </div>
-      </div>
-      <motion.div
-        className="text-4xl font-playfair font-bold text-pink-600 mb-8"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      >
-        Excitement level: <span className="text-rose-500">{answers.excitement}%</span>
-      </motion.div>
-      <Button
-        onClick={() => {
-          setStep(step + 1);
-          setTimeout(triggerConfetti, 500);
-        }}
-        className="bg-gradient-to-r from-pink-500 to-rose-500 hover:brightness-95 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
-      >
-        Let&apos;s make it official! 💕
-      </Button>
-      </StepCard>
-    </motion.div>,
 
      
     <motion.div key="step5" className="text-center" {...fadeInUp}>
       <StepCard stepNumber={6} totalSteps={6}>
-      <h2 className="text-5xl sm:text-6xl font-playfair font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-rose-500">
-        It&apos;s a date, my love!
+      <h2 className="text-5xl sm:text-6xl font-playfair font-bold mb-8">
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-rose-500">It&apos;s a date, my luhhhhh!</span>
       </h2>
       <p className="text-lg text-rose-500 mb-3 font-poppins">
         I can&apos;t wait to see you on:
@@ -363,7 +258,7 @@ export default function EnchantingDateProposalApp() {
         className="inline-block bg-gradient-to-r from-pink-100 to-rose-100 px-6 py-4 rounded-2xl border border-pink-200 mb-8"
       >
         <p className="text-3xl font-playfair font-bold text-pink-700">
-          {formatDate(answers.date)} at {answers.time}
+          {answers.date} at {answers.time}
         </p>
       </motion.div>
       <motion.img
@@ -387,11 +282,9 @@ export default function EnchantingDateProposalApp() {
         transition={{ delay: 1, duration: 0.6 }}
         className="mt-8 space-y-3 text-lg text-pink-600 font-poppins"
       >
-        <p className="text-base">We&apos;ll enjoy some delicious <span className="font-semibold">{answers.food.join(", ")}</span>.</p>
-        <p className="text-base">Then we&apos;ll watch <span className="font-semibold italic">&quot;{answers.movie}&quot;</span> together.</p>
-        <p className="text-xl font-playfair font-bold mt-6">
-          Your excitement level: <span className="text-rose-600">{answers.excitement}/100</span>
-        </p>
+        <p className="text-base">We&apos;ll be doing: <span className="font-semibold">{answers.activities.join(", ")}</span></p>
+        
+       
       </motion.div>
       </StepCard>
     </motion.div>,
